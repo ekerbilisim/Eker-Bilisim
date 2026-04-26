@@ -16,11 +16,14 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
   Cpu,
   ShieldCheck,
   Zap,
   Send,
-  Lock
+  Lock,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Turnstile from 'react-turnstile';
@@ -134,9 +137,18 @@ const serviceLocales = {
 
 export default function App() {
   const [lang, setLang] = useState<Language>('tr');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('eker_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
   const [selectedService, setSelectedService] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
   const [isSent, setIsSent] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -150,11 +162,6 @@ export default function App() {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
 
-    // Force light mode
-    document.documentElement.classList.remove('dark');
-    document.documentElement.style.colorScheme = 'light';
-    document.body.style.backgroundColor = '#ffffff'; // white
-
     // Initial message count from localStorage
     const savedCount = localStorage.getItem('eker_message_count');
     if (savedCount) {
@@ -163,6 +170,20 @@ export default function App() {
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    // Apply theme
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+      document.body.style.backgroundColor = '#020617'; // slate-950 matches dark:bg-slate-950
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+      document.body.style.backgroundColor = '#ffffff'; // Ensure white background
+    }
+    localStorage.setItem('eker_theme', theme);
+  }, [theme]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,12 +208,14 @@ export default function App() {
     (e.target as HTMLFormElement).reset();
   };
 
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-white text-slate-800 font-sans selection:bg-blue-600/30">
+    <div className="min-h-screen transition-colors duration-300 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans selection:bg-blue-600/30">
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled 
-            ? 'bg-white/95 border-slate-100' + ' backdrop-blur-md py-4 shadow-sm border-b' 
+            ? 'bg-white/95 dark:bg-slate-900/95 border-slate-100 dark:border-slate-800' + ' backdrop-blur-md py-4 shadow-sm border-b' 
             : 'bg-transparent py-6'
         }`}
       >
@@ -201,7 +224,7 @@ export default function App() {
             <div className="bg-blue-600 overflow-hidden rounded-xl group-hover:scale-105 transition-transform w-[50px] h-[50px]">
               <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim Logo" className="w-full h-full object-cover" />
             </div>
-            <span className={`text-xl font-bold tracking-tight underline decoration-blue-600 decoration-2 underline-offset-4 text-slate-900`}>
+            <span className={`text-xl font-bold tracking-tight underline decoration-blue-600 decoration-2 underline-offset-4 text-slate-900 dark:text-white`}>
               Eker <span className="text-blue-600">Bilişim</span>
             </span>
           </a>
@@ -211,23 +234,58 @@ export default function App() {
               <a 
                 key={key} 
                 href={`#${key === 'home' ? 'home' : key}`} 
-                className="text-sm font-semibold uppercase tracking-widest transition-colors hover:text-blue-600 text-slate-600"
+                className="text-sm font-semibold uppercase tracking-widest transition-colors hover:text-blue-600 text-slate-600 dark:text-slate-300"
               >
                 {name}
               </a>
             ))}
             
-            <div className="flex items-center gap-3 ml-4 border-l border-slate-300/30 pl-6">
-              <div className="flex items-center gap-1">
-                {(['tr', 'en', 'de'] as Language[]).map((l) => (
-                  <button 
-                    key={l}
-                    onClick={() => setLang(l)}
-                    className={`px-2 py-1 text-[10px] font-bold rounded uppercase transition-all ${lang === l ? 'bg-blue-600 text-white' : 'hover:bg-blue-500/10 text-slate-500'}`}
-                  >
-                    {l}
-                  </button>
-                ))}
+            <div className="flex items-center gap-3 ml-4 border-l border-slate-300/30 dark:border-slate-700/50 pl-6">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-2"
+                aria-label="Toggle Theme"
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+
+              {/* Language Dropdown PC */}
+              <div 
+                className="relative group"
+                onMouseEnter={() => setLangDropdownOpen(true)}
+                onMouseLeave={() => setLangDropdownOpen(false)}
+              >
+                <button 
+                  onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold rounded-xl uppercase transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                >
+                  {lang}
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {langDropdownOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 w-32 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden py-1 z-[60]"
+                    >
+                      {(['tr', 'en', 'de'] as Language[]).map((l) => (
+                        <button 
+                          key={l}
+                          onClick={() => {
+                            setLang(l);
+                            setLangDropdownOpen(false);
+                          }}
+                          className={`w-full px-4 py-2 text-[10px] font-bold uppercase text-left transition-all ${lang === l ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-300'}`}
+                        >
+                          {l === 'tr' ? 'Türkçe' : l === 'en' ? 'English' : 'Deutsch'}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <a href="#contact" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
@@ -247,16 +305,46 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="absolute top-full left-0 right-0 bg-white border-slate-100 border-t shadow-xl overflow-hidden p-6 md:hidden flex flex-col gap-4"
+              className="absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 border-t shadow-xl overflow-hidden p-6 md:hidden flex flex-col gap-4 text-slate-900 dark:text-white"
             >
               {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
                 <a key={key} href={`#${key}`} className="text-lg font-medium hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>{name}</a>
               ))}
-              <div className="flex gap-4 items-center">
-                <div className="flex bg-slate-100 rounded-xl p-1">
-                  {(['tr', 'en', 'de'] as Language[]).map((l) => (
-                    <button key={l} onClick={() => setLang(l)} className={`px-4 py-2 text-xs font-bold rounded-lg uppercase ${lang === l ? 'bg-blue-600 text-white' : ''}`}>{l}</button>
-                  ))}
+              <div className="flex flex-col gap-4">
+                <div className="relative">
+                  <button 
+                    onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                    className="flex items-center justify-between w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold uppercase text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="flex items-center gap-2">
+                      {lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'Deutsch'}
+                    </span>
+                    <ChevronDown size={16} className={`transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {langDropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl mt-2 overflow-hidden shadow-lg"
+                      >
+                        {(['tr', 'en', 'de'] as Language[]).map((l) => (
+                          <button 
+                            key={l}
+                            onClick={() => {
+                              setLang(l);
+                              setLangDropdownOpen(false);
+                            }}
+                            className={`w-full px-4 py-3 text-xs font-bold uppercase text-left transition-all ${lang === l ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-800 text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-slate-800 last:border-0'}`}
+                          >
+                            {l === 'tr' ? 'Türkçe' : l === 'en' ? 'English' : 'Deutsch'}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
@@ -265,10 +353,10 @@ export default function App() {
       </nav>
 
       {/* Hero */}
-      <section id="home" className="relative pt-32 pb-20 overflow-hidden min-h-[95vh] flex items-center transition-colors bg-white">
+      <section id="home" className="relative pt-32 pb-20 overflow-hidden min-h-[95vh] flex items-center transition-colors bg-white dark:bg-slate-950">
         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
-           <div className="absolute top-0 -left-20 w-[45rem] h-[45rem] bg-blue-400/20 rounded-full blur-[130px] animate-pulse"></div>
-           <div className="absolute bottom-0 -right-20 w-[35rem] h-[35rem] bg-indigo-300/20 rounded-full blur-[110px] animate-pulse delay-700"></div>
+           <div className="absolute top-0 -left-20 w-[45rem] h-[45rem] bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-[130px] animate-pulse"></div>
+           <div className="absolute bottom-0 -right-20 w-[35rem] h-[35rem] bg-indigo-300/20 dark:bg-indigo-500/10 rounded-full blur-[110px] animate-pulse delay-700"></div>
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -286,7 +374,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-5xl md:text-[6.5rem] font-black leading-[0.95] mb-8 font-display"
+                className="text-5xl md:text-[6.5rem] font-black leading-[0.95] mb-8 font-display text-slate-900 dark:text-white"
               >
                 {t.hero.title1} <br />
                 <span className="text-blue-600">{t.hero.title2}</span> {t.hero.title3}
@@ -296,7 +384,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-lg md:text-xl max-w-xl mb-12 leading-relaxed text-slate-600"
+                className="text-lg md:text-xl max-w-xl mb-12 leading-relaxed text-slate-600 dark:text-slate-400"
               >
                 {t.hero.desc}
               </motion.p>
@@ -305,7 +393,7 @@ export default function App() {
                 <a href="#contact" className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:bg-blue-700 hover:translate-y-[-2px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
                   {t.hero.cta1} <ArrowRight />
                 </a>
-                <a href="#services" className="bg-white border border-slate-100 text-slate-600 px-10 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center justify-center hover:bg-slate-50 hover:border-slate-200">
+                <a href="#services" className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 px-10 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700">
                   {t.hero.cta2}
                 </a>
               </motion.div>
@@ -313,18 +401,19 @@ export default function App() {
 
             <div className="hidden lg:grid w-2/5 grid-cols-2 gap-4">
               {s.slice(0, 4).map((srv, idx) => (
-                <motion.div 
+                <motion.a 
                   key={srv.id} 
+                  href="#services"
                   initial={{ opacity: 0, scale: 0.8 }} 
                   animate={{ opacity: 1, scale: 1 }} 
                   transition={{ delay: 0.8 + (idx * 0.1) }}
-                  className="p-8 bg-white border border-slate-100 text-slate-900 rounded-3xl shadow-sm hover:border-blue-600/30 transition-all group"
+                  className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl shadow-sm hover:border-blue-600/30 transition-all group cursor-pointer hover:shadow-lg hover:-translate-y-1 block"
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
                     {srv.icon}
                   </div>
                   <h3 className="font-black text-xs uppercase tracking-widest">{srv.title}</h3>
-                </motion.div>
+                </motion.a>
               ))}
             </div>
           </div>
@@ -332,22 +421,22 @@ export default function App() {
       </section>
 
       {/* Services */}
-      <section id="services" className="py-32 bg-white">
+      <section id="services" className="py-32 bg-white dark:bg-slate-950">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.services.badge}</h2>
-            <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight font-display">{t.services.title}</h3>
+            <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight font-display text-slate-900 dark:text-white">{t.services.title}</h3>
             <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {s.map((srv, i) => (
-              <motion.div key={i} whileHover={{ y: -10 }} className="p-10 bg-white border-2 border-slate-50 rounded-3xl transition-all shadow-sm hover:shadow-2xl hover:border-blue-600/30">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-md bg-blue-50/50 text-blue-600">
+              <motion.div key={i} whileHover={{ y: -10 }} className="p-10 bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 rounded-3xl transition-all shadow-sm hover:shadow-2xl hover:border-blue-600/30">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-md bg-blue-50/50 dark:bg-blue-900/20 text-blue-600">
                   {srv.icon}
                 </div>
-                <h4 className="text-xl font-black mb-4 font-display">{srv.title}</h4>
-                <p className="text-sm leading-relaxed mb-8 text-slate-500">
+                <h4 className="text-xl font-black mb-4 font-display text-slate-900 dark:text-white">{srv.title}</h4>
+                <p className="text-sm leading-relaxed mb-8 text-slate-500 dark:text-slate-400">
                   {srv.desc}
                 </p>
                 <button 
@@ -363,12 +452,12 @@ export default function App() {
       </section>
 
       {/* About */}
-      <section id="about" className="py-32 transition-colors bg-blue-50/10">
+      <section id="about" className="py-32 transition-colors bg-slate-50/50 dark:bg-slate-900/20">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row items-center gap-20">
             <div className="lg:w-1/2 relative">
-              <div className="absolute -inset-4 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
-              <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000" className="rounded-[3rem] shadow-2xl relative z-10 hover:shadow-blue-200/50 transition-all duration-700" alt="Team" />
+              <div className="absolute -inset-4 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
+              <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000" className="rounded-[3rem] shadow-2xl relative z-10 hover:shadow-blue-200/50 dark:hover:shadow-blue-900/50 transition-all duration-700" alt="Team" />
               <div className="absolute -bottom-10 -right-10 bg-blue-600 text-white p-8 rounded-[2rem] shadow-2xl z-20 hidden md:block">
                 <span className="text-5xl font-black block">10+</span>
                 <span className="text-[10px] uppercase font-black tracking-widest opacity-80">{t.about.exp}</span>
@@ -376,18 +465,18 @@ export default function App() {
             </div>
             <div className="lg:w-1/2">
               <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.about.badge}</h2>
-              <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[1.1] font-display">{t.about.title}</h3>
-              <p className="text-lg mb-6 leading-relaxed text-slate-700">{t.about.p1}</p>
-              <p className="mb-10 leading-relaxed text-slate-600">{t.about.p2}</p>
+              <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[1.1] font-display text-slate-900 dark:text-white">{t.about.title}</h3>
+              <p className="text-lg mb-6 leading-relaxed text-slate-700 dark:text-slate-300">{t.about.p1}</p>
+              <p className="mb-10 leading-relaxed text-slate-600 dark:text-slate-400">{t.about.p2}</p>
               
               <div className="grid grid-cols-2 gap-8 mb-12">
                 <div className="flex gap-4">
                   <Zap className="text-blue-600 shrink-0" />
-                  <div><h5 className="font-black text-sm uppercase">{t.about.fastSupport}</h5><p className="text-xs text-slate-500">7/24 Teknik destek</p></div>
+                  <div><h5 className="font-black text-sm uppercase text-slate-900 dark:text-white">{t.about.fastSupport}</h5><p className="text-xs text-slate-500 dark:text-slate-400">7/24 Teknik destek</p></div>
                 </div>
                 <div className="flex gap-4">
                   <ShieldCheck className="text-blue-600 shrink-0" />
-                  <div><h5 className="font-black text-sm uppercase">{t.about.secureInfra}</h5><p className="text-xs text-slate-500">Maksimum güvenlik</p></div>
+                  <div><h5 className="font-black text-sm uppercase text-slate-900 dark:text-white">{t.about.secureInfra}</h5><p className="text-xs text-slate-500 dark:text-slate-400">Maksimum güvenlik</p></div>
                 </div>
               </div>
               <a href="#contact" className="bg-blue-600 text-white px-10 py-4 rounded-full font-black hover:bg-blue-700 transition-all shadow-lg inline-flex items-center gap-2">{t.about.more} <ArrowRight /></a>
@@ -410,41 +499,41 @@ export default function App() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="py-40 transition-colors bg-white">
+      <section id="contact" className="py-40 transition-colors bg-white dark:bg-slate-950">
         <div className="container mx-auto px-6 max-w-4xl">
           <div className="text-center mb-20">
             <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.contact.badge}</h2>
-            <h3 className="text-4xl md:text-6xl font-black mb-8 font-display">{t.contact.title}</h3>
-            <p className="text-lg text-slate-600">{t.contact.desc}</p>
+            <h3 className="text-4xl md:text-6xl font-black mb-8 font-display text-slate-900 dark:text-white">{t.contact.title}</h3>
+            <p className="text-lg text-slate-600 dark:text-slate-400">{t.contact.desc}</p>
           </div>
           
           <div className="w-full">
-            <form onSubmit={handleSubmit} className="bg-white border-slate-50 border-2 p-10 md:p-16 rounded-[4rem] space-y-10 shadow-2xl shadow-slate-100 transition-colors">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 border-slate-50 dark:border-slate-800 border-2 p-10 md:p-16 rounded-[4rem] space-y-10 shadow-2xl shadow-slate-100 dark:shadow-none transition-colors">
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-4">
-                  <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelName}</label>
-                  <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
+                  <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelName}</label>
+                  <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-4">
-                  <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelEmail}</label>
-                  <input required type="email" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
+                  <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelEmail}</label>
+                  <input required type="email" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
                 </div>
               </div>
               <div className="space-y-4">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelSubject}</label>
-                <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
+                <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelSubject}</label>
+                <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
               </div>
               <div className="space-y-4">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelMsg}</label>
-                <textarea required rows={4} className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl resize-none" />
+                <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelMsg}</label>
+                <textarea required rows={4} className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white resize-none" />
               </div>
 
               {/* Turnstile Captcha - Inconspicuous container */}
-              <div className="flex justify-center py-2">
+              <div className="flex justify-center py-2 h-16">
                 <Turnstile
                   sitekey={turnstileSiteKey}
                   onVerify={(token) => setTurnstileToken(token)}
-                  theme="light"
+                  theme={theme}
                   appearance="interaction-only"
                 />
               </div>
@@ -462,7 +551,7 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="transition-colors bg-white border-t border-slate-50 text-slate-900 py-32 rounded-t-[5rem]">
+      <footer className="transition-colors bg-white dark:bg-slate-900 border-t border-slate-50 dark:border-slate-800 text-slate-900 dark:text-slate-100 py-32 rounded-t-[5rem]">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-24 mb-24">
             <div className="space-y-8">
@@ -470,18 +559,18 @@ export default function App() {
                 <div className="bg-blue-600 overflow-hidden rounded-xl w-[60px] h-[60px]">
                   <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim" className="w-full h-full object-cover" />
                 </div>
-                <span className="text-3xl font-black tracking-tighter underline decoration-blue-600 decoration-4 underline-offset-[12px] text-slate-900">Eker <span className="text-blue-600">Bilişim</span></span>
+                <span className="text-3xl font-black tracking-tighter underline decoration-blue-600 decoration-4 underline-offset-[12px] text-slate-900 dark:text-white">Eker <span className="text-blue-600">Bilişim</span></span>
               </a>
-              <p className="text-lg font-medium leading-relaxed max-w-sm text-slate-500">{t.footer.desc}</p>
+              <p className="text-lg font-medium leading-relaxed max-w-sm text-slate-500 dark:text-slate-400">{t.footer.desc}</p>
               <div className="flex gap-4">
-                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Facebook size={20}/></a>
-                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Twitter size={20}/></a>
-                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Instagram size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Facebook size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Twitter size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Instagram size={20}/></a>
               </div>
             </div>
             <div>
               <h5 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-10">{t.footer.quickLinks}</h5>
-              <ul className="grid grid-cols-2 gap-y-6 gap-x-12 text-sm font-black uppercase tracking-widest text-slate-400">
+              <ul className="grid grid-cols-2 gap-y-6 gap-x-12 text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
                   <li key={key}><a href={`#${key}`} className="hover:text-blue-600 transition-colors">{name}</a></li>
                 ))}
@@ -490,14 +579,14 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-10">{t.footer.subscribe}</h5>
               <div className="relative group">
-                <input type="email" placeholder={t.footer.placeholder} className="w-full bg-white border-slate-100 border-2 rounded-[1.5rem] px-8 py-5 text-sm focus:border-blue-600 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-900" />
+                <input type="email" placeholder={t.footer.placeholder} className="w-full bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 border-2 rounded-[1.5rem] px-8 py-5 text-sm focus:border-blue-600 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 font-bold text-slate-900 dark:text-white" />
                 <button className="absolute right-3 top-3 bg-blue-600 p-2.5 rounded-[1rem] shadow-xl hover:bg-blue-700 transition-all text-white"><ArrowRight size={22}/></button>
               </div>
             </div>
           </div>
-          <div className="pt-16 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
+          <div className="pt-16 border-t border-slate-200 dark:border-slate-800 flex flex-col md:row justify-between items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">
             <p className="opacity-80">{t.footer.rights}</p>
-            <div className="flex gap-12 text-slate-400">
+            <div className="flex gap-12">
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Legal Terms</a>
             </div>
@@ -519,32 +608,32 @@ export default function App() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl relative"
+              className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
               <button 
                 onClick={() => setSelectedService(null)}
-                className="absolute top-8 right-8 p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-blue-600 transition-colors z-10"
+                className="absolute top-8 right-8 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-blue-600 transition-colors z-10"
               >
                 <X size={24} />
               </button>
 
-              <div className="p-12 md:p-16">
+              <div className="p-12 md:p-16 text-slate-900 dark:text-white">
                 <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-10 shadow-xl bg-blue-600 text-white">
                   {React.cloneElement(selectedService.icon as React.ReactElement, { className: "w-10 h-10" })}
                 </div>
                 
-                <h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tight font-display text-slate-900">
+                <h4 className="text-3xl md:text-5xl font-black mb-8 tracking-tight font-display">
                   {selectedService.title}
-                </h2>
+                </h4>
                 
-                <div className="space-y-6 text-lg leading-relaxed text-slate-600">
+                <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
                   {selectedService.fullDesc.split('\n').map((para: string, idx: number) => (
                     <p key={idx}>{para}</p>
                   ))}
                 </div>
 
-                <div className="mt-12 pt-12 border-t border-slate-100 flex flex-col sm:flex-row gap-6">
+                <div className="mt-12 pt-12 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-6">
                   <a 
                     href="#contact" 
                     onClick={() => setSelectedService(null)}
@@ -554,7 +643,7 @@ export default function App() {
                   </a>
                   <button 
                     onClick={() => setSelectedService(null)}
-                    className="bg-slate-50 text-slate-600 px-10 py-5 rounded-2xl font-black hover:bg-slate-100 transition-all active:scale-95 text-center"
+                    className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-10 py-5 rounded-2xl font-black hover:bg-slate-100 dark:hover:bg-slate-700 transition-all active:scale-95 text-center"
                   >
                     {lang === 'tr' ? 'Kapat' : lang === 'en' ? 'Close' : 'Schließen'}
                   </button>
