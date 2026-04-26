@@ -1,0 +1,455 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Smartphone, 
+  LifeBuoy, 
+  Server, 
+  Layout, 
+  Facebook, 
+  Twitter, 
+  Instagram, 
+  ArrowRight,
+  Menu,
+  X,
+  ChevronRight,
+  Cpu,
+  ShieldCheck,
+  Zap,
+  Sun,
+  Moon,
+  Send,
+  Lock
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import Turnstile from 'react-turnstile';
+
+// --- Types & Translations ---
+type Language = 'tr' | 'en' | 'de';
+type Theme = 'light' | 'dark';
+
+const currentYear = new Date().getFullYear();
+
+const translations = {
+  tr: {
+    nav: { home: 'Ana Sayfa', services: 'Hizmetler', about: 'Hakkımızda', contact: 'İletişim', offer: 'Teklif Al' },
+    hero: { badge: 'Geleceğin Teknolojisi Bugün Burada', title1: 'Dijital Dünyada', title2: 'Güçlü', title3: 'İzler Bırakın.', desc: 'Yazılım, ağ ve güvenlik çözümlerimizle işletmenizi yarına hazırlıyoruz. Eker Bilişim profesyonel ekibiyle her adımda yanınızdayız.', cta1: 'Bizimle İletişime Geçin', cta2: 'Hizmetleri Gör' },
+    services: { badge: 'Hizmetlerimiz', title: 'Teknolojiyi İhtiyacınıza Göre Şekillendiriyoruz', more: 'Detaylı Bilgi' },
+    about: { badge: 'Hakkımızda', title: 'Geleceği Bugünün Teknolojisiyle İnşa Ediyoruz', p1: 'Eker Bilişim olarak, teknoloji dünyasındaki hızlı değişime ayak uydurmak yerine, değişimi yönetenler arasında yer alıyoruz.', p2: 'Her projeye butik ve çözüm odaklı yaklaşarak, işletmenizin gerçek potansiyelini dijital dünyaya yansıtıyoruz.', exp: 'Yıllık Deneyim', fastSupport: 'Hızlı Destek', secureInfra: 'Güvenilir Altyapı', more: 'Daha Fazla Bilgi' },
+    cta: { title: 'Projenizi Başlatmaya Hazır mısınız?', p: 'Hemen bizimle iletişime geçin, işiniz için en uygun teknolojik çözümleri planlayalım.' },
+    contact: { badge: 'İletişim', title: 'Bizimle Bağlantıda Kalın', desc: 'Soru ve talepleriniz için aşağıdaki formu doldurun. En kısa sürede size dönüş yapacağız.', labelName: 'Adınız Soyadınız', labelEmail: 'E-posta Adresiniz', labelSubject: 'Konu', labelMsg: 'Mesajınız', send: 'Mesajı Gönder', limitReached: 'Mesaj limitine ulaştınız. (Maks. 2)', success: 'Mesajınız başarıyla gönderildi!' },
+    footer: { desc: 'Teknolojiyi erişilebilir ve verimli kılarak işletmelerin dijital hedeflerine ulaşmalarına yardımcı oluyoruz.', quickLinks: 'Hızlı Menü', subscribe: 'Bülten', placeholder: 'E-posta adresiniz', subButton: 'Abone Ol', rights: `© ${currentYear} Eker Bilişim. Tüm Hakları Saklıdır.` }
+  },
+  en: {
+    nav: { home: 'Home', services: 'Services', about: 'About', contact: 'Contact', offer: 'Get Offer' },
+    hero: { badge: 'Future Tech is Here Today', title1: 'Leave', title2: 'Strong', title3: 'Marks in Digital.', desc: 'We prepare your business for tomorrow with software, network and security solutions. Eker Bilişim is with you at every step.', cta1: 'Contact Us', cta2: 'View Services' },
+    services: { badge: 'Our Services', title: 'Shaping Technology According to Your Needs', more: 'Learn More' },
+    about: { badge: 'About Us', title: 'Building the Future with Today\'s Tech', p1: 'At Eker Bilişim, we are among those who manage change rather than just keeping up with it.', p2: 'We reflect your business\'s true potential to the digital world with a solutions-oriented approach.', exp: 'Years Experience', fastSupport: 'Fast Support', secureInfra: 'Secure Infra', more: 'More Info' },
+    cta: { title: 'Ready to Start Your Project?', p: 'Contact us now, let\'s plan the most suitable tech solutions for your business.' },
+    contact: { badge: 'Contact', title: 'Stay Connected With Us', desc: 'Fill out the form below for any questions or requests. We will get back to you soon.', labelName: 'Full Name', labelEmail: 'Email Address', labelSubject: 'Subject', labelMsg: 'Your Message', send: 'Send Message', limitReached: 'Message limit reached. (Max 2)', success: 'Your message has been sent successfully!' },
+    footer: { desc: 'We help businesses reach their digital goals by making technology accessible and efficient.', quickLinks: 'Quick Menu', subscribe: 'Newsletter', placeholder: 'Your email address', subButton: 'Subscribe', rights: `© ${currentYear} Eker Bilişim. All Rights Reserved.` }
+  },
+  de: {
+    nav: { home: 'Startseite', services: 'Dienste', about: 'Über uns', contact: 'Kontakt', offer: 'Angebot' },
+    hero: { badge: 'Zukunftstechnologie Ist Heute Hier', title1: 'Hinterlassen Sie', title2: 'Starke', title3: 'Spuren Digital.', desc: 'Wir bereiten Ihr Unternehmen mit Software-, Netzwerk- und Sicherheitslösungen auf morgen vor. Eker Bilişim begleitet Sie bei jedem Schritt.', cta1: 'Kontaktieren Sie uns', cta2: 'Dienste sehen' },
+    services: { badge: 'Unsere Dienste', title: 'Technologie nach Ihren Bedürfnissen gestalten', more: 'Mehr Details' },
+    about: { badge: 'Über uns', title: 'Zukunft mit heutiger Technologie bauen', p1: 'Bei Eker Bilişim gehören wir zu denen, die den Wandel gestalten, anstatt nur mitzuhalten.', p2: 'Wir spiegeln das wahre Potenzial Ihres Unternehmens mit einem lösungsorientierten Ansatz wider.', exp: 'Jahre Erfahrung', fastSupport: 'Schneller Support', secureInfra: 'Sichere Infra', more: 'Mehr Info' },
+    cta: { title: 'Bereit, Ihr Projekt zu starten?', p: 'Kontaktieren Sie uns jetzt, wir planen die passenden Lösungen für Sie.' },
+    contact: { badge: 'Kontakt', title: 'Bleiben Sie mit uns in Verbindung', desc: 'Füllen Sie das untenstehende Formular aus. Wir melden uns in Kürze.', labelName: 'Vollständiger Name', labelEmail: 'E-Mail-Adresse', labelSubject: 'Betreff', labelMsg: 'Ihre Nachricht', send: 'Nachricht senden', limitReached: 'Nachrichtenlimit erreicht. (Max 2)', success: 'Ihre Nachricht wurde erfolgreich gesendet!' },
+    footer: { desc: 'Wir helfen Unternehmen, ihre digitalen Ziele zu erreichen, indem wir Technologie zugänglich machen.', quickLinks: 'Quick-Menü', subscribe: 'Newsletter', placeholder: 'Deine E-Mail', subButton: 'Abonnieren', rights: `© ${currentYear} Eker Bilişim. Alle Rechte vorbehalten.` }
+  }
+};
+
+const getServices = (t: any) => [
+  { id: 'web', title: t.webTitle || 'Web Sitesi Kurulumu', icon: <Layout className="w-8 h-8" /> },
+  { id: 'app', title: t.appTitle || 'Uygulama Geliştirme', icon: <Smartphone className="w-8 h-8" /> },
+  { id: 'infra', title: t.infraTitle || 'Altyapı & Güvenlik', icon: <ShieldCheck className="w-8 h-8" /> },
+  { id: 'support', title: t.supportTitle || 'Teknik Destek', icon: <LifeBuoy className="w-8 h-8" /> },
+  { id: 'server', title: t.serverTitle || 'Kurulum Hizmetleri', icon: <Server className="w-8 h-8" /> },
+  { id: 'security', title: t.secureTitle || 'Siber Güvenlik', icon: <ShieldCheck className="w-8 h-8" /> },
+];
+
+const serviceLocales = {
+  tr: { webTitle: 'Web Sitesi Kurulumu', appTitle: 'Uygulama Geliştirme', infraTitle: 'Altyapı & Güvenlik', supportTitle: 'Teknik Destek', serverTitle: 'Kurulum Hizmetleri', secureTitle: 'Siber Güvenlik' },
+  en: { webTitle: 'Web Setup', appTitle: 'App Development', infraTitle: 'Infra & Security', supportTitle: 'Technical Support', serverTitle: 'Installation Services', secureTitle: 'Cyber Security' },
+  de: { webTitle: 'Web-Installation', appTitle: 'App-Entwicklung', infraTitle: 'Infra & Sicherheit', supportTitle: 'Technischer Support', serverTitle: 'Installationsdienste', secureTitle: 'Cyber-Sicherheit' }
+};
+
+export default function App() {
+  const [lang, setLang] = useState<Language>('tr');
+  const [theme, setTheme] = useState<Theme>('light');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+  const [isSent, setIsSent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+
+  const t = translations[lang];
+  const s = getServices(serviceLocales[lang]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+
+    // Initial message count from localStorage
+    const savedCount = localStorage.getItem('eker_message_count');
+    if (savedCount) {
+      setMessageCount(parseInt(savedCount, 10));
+    }
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.body.style.backgroundColor = '#0f172a'; // slate-900
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.style.backgroundColor = '#ffffff'; // white
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!turnstileToken) {
+      alert('Lütfen robot olmadığınızı doğrulayın.');
+      return;
+    }
+
+    if (messageCount >= 2) {
+      alert(t.contact.limitReached);
+      return;
+    }
+    
+    const nextCount = messageCount + 1;
+    setMessageCount(nextCount);
+    localStorage.setItem('eker_message_count', nextCount.toString());
+    setIsSent(true);
+    alert(t.contact.success);
+    
+    // In a real app, you'd send data to an API here
+    (e.target as HTMLFormElement).reset();
+  };
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'} font-sans selection:bg-blue-500/30`}>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? (theme === 'dark' ? 'bg-slate-900/80' : 'bg-white/90') + ' backdrop-blur-md py-4 shadow-lg border-b border-slate-200/10' : 'bg-transparent py-6'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <a href="#home" className="flex items-center gap-3 group">
+            <div className="bg-blue-600 overflow-hidden rounded-xl group-hover:scale-105 transition-transform w-[50px] h-[50px]">
+              <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim Logo" className="w-full h-full object-cover" />
+            </div>
+            <span className={`text-xl font-bold tracking-tight underline decoration-blue-600 decoration-2 underline-offset-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              Eker <span className="text-blue-600">Bilişim</span>
+            </span>
+          </a>
+
+          <div className="hidden md:flex items-center gap-6">
+            {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
+              <a 
+                key={key} 
+                href={`#${key === 'home' ? 'home' : key}`} 
+                className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-blue-600 ${isScrolled ? (theme === 'dark' ? 'text-slate-300' : 'text-slate-600') : (theme === 'dark' ? 'text-slate-300' : 'text-slate-600')}`}
+              >
+                {name}
+              </a>
+            ))}
+            
+            <div className="flex items-center gap-3 ml-4 border-l border-slate-300/30 pl-6">
+              <button onClick={toggleTheme} className="p-2 hover:bg-blue-500/10 rounded-full transition-colors text-blue-600">
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {(['tr', 'en', 'de'] as Language[]).map((l) => (
+                  <button 
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className={`px-2 py-1 text-[10px] font-bold rounded uppercase transition-all ${lang === l ? 'bg-blue-600 text-white' : 'hover:bg-blue-500/10 text-slate-500'}`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+
+              <a href="#contact" className="bg-slate-900 dark:bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95">
+                {t.nav.offer}
+              </a>
+            </div>
+          </div>
+
+          <button className="md:hidden p-2 text-blue-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`absolute top-full left-0 right-0 ${theme === 'dark' ? 'bg-slate-800' : 'bg-white'} border-t border-slate-100 shadow-xl overflow-hidden p-6 md:hidden flex flex-col gap-4`}
+            >
+              {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
+                <a key={key} href={`#${key}`} className="text-lg font-medium hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>{name}</a>
+              ))}
+              <div className="flex gap-4 items-center">
+                <button onClick={toggleTheme} className="p-3 bg-slate-100 dark:bg-slate-700 rounded-xl">{theme === 'light' ? <Moon size={20}/> : <Sun size={20}/>}</button>
+                <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
+                  {(['tr', 'en', 'de'] as Language[]).map((l) => (
+                    <button key={l} onClick={() => setLang(l)} className={`px-4 py-2 text-xs font-bold rounded-lg uppercase ${lang === l ? 'bg-blue-600 text-white' : ''}`}>{l}</button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* Hero */}
+      <section id="home" className={`relative pt-32 pb-20 overflow-hidden min-h-[95vh] flex items-center transition-colors ${theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+           <div className={`absolute top-0 -left-20 w-[40rem] h-[40rem] ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-300/20'} rounded-full blur-[120px] animate-pulse`}></div>
+           <div className={`absolute bottom-0 -right-20 w-[30rem] h-[30rem] ${theme === 'dark' ? 'bg-indigo-500/20' : 'bg-indigo-300/20'} rounded-full blur-[100px] animate-pulse delay-700`}></div>
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            <div className="w-full lg:w-3/5">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="inline-block py-1.5 px-4 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full mb-6 uppercase tracking-widest border border-blue-200"
+              >
+                {t.hero.badge}
+              </motion.div>
+              
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-5xl md:text-[6.5rem] font-black leading-[0.95] mb-8 font-display"
+              >
+                {t.hero.title1} <br />
+                <span className="text-blue-600">{t.hero.title2}</span> {t.hero.title3}
+              </motion.h1>
+
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-lg md:text-xl text-slate-500 max-w-xl mb-12 leading-relaxed"
+              >
+                {t.hero.desc}
+              </motion.p>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="flex flex-col sm:flex-row gap-4">
+                <a href="#contact" className="bg-slate-900 dark:bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:translate-y-[-2px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                  {t.hero.cta1} <ArrowRight />
+                </a>
+                <a href="#services" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 px-10 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center justify-center">
+                  {t.hero.cta2}
+                </a>
+              </motion.div>
+            </div>
+
+            <div className="hidden lg:grid w-2/5 grid-cols-2 gap-4">
+              {s.slice(0, 4).map((srv, idx) => (
+                <motion.div 
+                  key={srv.id} 
+                  initial={{ opacity: 0, scale: 0.8 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  transition={{ delay: 0.8 + (idx * 0.1) }}
+                  className={`p-8 ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} border rounded-3xl shadow-sm hover:border-blue-500 transition-all group`}
+                >
+                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">{srv.icon}</div>
+                  <h3 className="font-black text-xs uppercase tracking-widest">{srv.title}</h3>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services */}
+      <section id="services" className={`py-32 ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.services.badge}</h2>
+            <h3 className="text-3xl md:text-5xl font-black mb-6 tracking-tight font-display">{t.services.title}</h3>
+            <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {s.map((srv, i) => (
+              <motion.div key={i} whileHover={{ y: -10 }} className={`p-10 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} border-2 rounded-3xl transition-all shadow-sm hover:shadow-2xl hover:border-blue-500/50`}>
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 text-blue-600 rounded-2xl flex items-center justify-center mb-8 shadow-md">{srv.icon}</div>
+                <h4 className="text-xl font-black mb-4 font-display">{srv.title}</h4>
+                <p className="text-slate-500 text-sm leading-relaxed mb-8">Uzman ekibimizle markanızın dijitalleşme sürecindeki en büyük yardımcısıyız. İhtiyaçlarınıza özel stratejiler ve kalıcı çözümler üretiyoruz.</p>
+                <a href="#contact" className="text-xs font-black text-blue-600 uppercase tracking-widest underline underline-offset-8 decoration-blue-200 hover:decoration-blue-600 transition-all inline-flex items-center gap-2">
+                  {t.services.more} <ChevronRight size={14}/>
+                </a>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About */}
+      <section id="about" className={`py-32 transition-colors ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50/50'}`}>
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row items-center gap-20">
+            <div className="lg:w-1/2 relative">
+              <div className="absolute -inset-4 bg-blue-600/20 rounded-full blur-3xl animate-pulse"></div>
+              <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000" className="rounded-[3rem] shadow-2xl relative z-10 grayscale hover:grayscale-0 transition-all duration-700" alt="Team" />
+              <div className="absolute -bottom-10 -right-10 bg-blue-600 text-white p-8 rounded-[2rem] shadow-2xl z-20 hidden md:block">
+                <span className="text-5xl font-black block">10+</span>
+                <span className="text-[10px] uppercase font-black tracking-widest opacity-80">{t.about.exp}</span>
+              </div>
+            </div>
+            <div className="lg:w-1/2">
+              <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.about.badge}</h2>
+              <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[1.1] font-display">{t.about.title}</h3>
+              <p className="text-lg text-slate-500 mb-6 leading-relaxed">{t.about.p1}</p>
+              <p className="text-slate-500 mb-10 leading-relaxed">{t.about.p2}</p>
+              
+              <div className="grid grid-cols-2 gap-8 mb-12">
+                <div className="flex gap-4">
+                  <Zap className="text-blue-600 shrink-0" />
+                  <div><h5 className="font-black text-sm uppercase">{t.about.fastSupport}</h5><p className="text-xs text-slate-400">7/24 Teknik destek</p></div>
+                </div>
+                <div className="flex gap-4">
+                  <ShieldCheck className="text-blue-600 shrink-0" />
+                  <div><h5 className="font-black text-sm uppercase">{t.about.secureInfra}</h5><p className="text-xs text-slate-400">Maksimum güvenlik</p></div>
+                </div>
+              </div>
+              <a href="#contact" className="bg-blue-600 text-white px-10 py-4 rounded-full font-black hover:bg-blue-700 transition-all shadow-lg inline-flex items-center gap-2">{t.about.more} <ArrowRight /></a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 bg-blue-600 border-y border-blue-500">
+        <div className="container mx-auto px-6 text-center">
+          <h3 className="text-4xl md:text-6xl font-black text-white mb-8 font-display">{t.cta.title}</h3>
+          <p className="text-blue-100 text-lg mb-12 max-w-2xl mx-auto">{t.cta.p}</p>
+          <div className="flex justify-center">
+            <a href="#contact" className="px-12 py-5 bg-white text-blue-600 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-xl active:scale-95">
+              {t.nav.offer} <ArrowRight />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className={`py-40 transition-colors ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
+        <div className="container mx-auto px-6 max-w-4xl">
+          <div className="text-center mb-20">
+            <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.contact.badge}</h2>
+            <h3 className="text-4xl md:text-6xl font-black mb-8 font-display">{t.contact.title}</h3>
+            <p className="text-slate-500 text-lg">{t.contact.desc}</p>
+          </div>
+          
+          <div className="w-full">
+            <form onSubmit={handleSubmit} className={`${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-2 p-10 md:p-16 rounded-[4rem] space-y-10 shadow-2xl transition-colors`}>
+              <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelName}</label>
+                  <input required type="text" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+                </div>
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelEmail}</label>
+                  <input required type="email" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelSubject}</label>
+                <input required type="text" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+              </div>
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelMsg}</label>
+                <textarea required rows={4} className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl resize-none`} />
+              </div>
+
+              {/* Turnstile Captcha */}
+              <div className="flex justify-center py-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <Turnstile
+                  sitekey={turnstileSiteKey}
+                  onVerify={(token) => setTurnstileToken(token)}
+                  theme={theme}
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={messageCount >= 2}
+                className="w-full bg-blue-600 text-white font-black py-6 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 text-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              >
+                {messageCount >= 2 ? t.contact.limitReached : <>{t.contact.send} <Send size={20} /></>}
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className={`transition-colors ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} py-32 rounded-t-[5rem]`}>
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-3 gap-24 mb-24">
+            <div className="space-y-8">
+               <a href="#home" className="flex items-center gap-3 group">
+                <div className="bg-blue-600 overflow-hidden rounded-xl w-[60px] h-[60px]">
+                  <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim" className="w-full h-full object-cover" />
+                </div>
+                <span className={`text-3xl font-black tracking-tighter underline decoration-blue-600 decoration-4 underline-offset-[12px] ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Eker <span className="text-blue-600">Bilişim</span></span>
+              </a>
+              <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-sm">{t.footer.desc}</p>
+              <div className="flex gap-4">
+                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Facebook size={20}/></a>
+                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Twitter size={20}/></a>
+                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Instagram size={20}/></a>
+              </div>
+            </div>
+            <div>
+              <h5 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-10">{t.footer.quickLinks}</h5>
+              <ul className="grid grid-cols-2 gap-y-6 gap-x-12 text-sm font-black uppercase tracking-widest text-slate-400">
+                {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
+                  <li key={key}><a href={`#${key}`} className="hover:text-blue-600 transition-colors">{name}</a></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h5 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-10">{t.footer.subscribe}</h5>
+              <div className="relative group">
+                <input type="email" placeholder={t.footer.placeholder} className={`w-full ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-2 rounded-[1.5rem] px-8 py-5 text-sm focus:border-blue-600 outline-none transition-all placeholder:text-slate-600 font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`} />
+                <button className="absolute right-3 top-3 bg-blue-600 p-2.5 rounded-[1rem] shadow-xl hover:bg-blue-700 transition-all text-white"><ArrowRight size={22}/></button>
+              </div>
+            </div>
+          </div>
+          <div className={`pt-16 border-t ${theme === 'dark' ? 'border-slate-800' : 'border-slate-200'} flex flex-col md:flex-row justify-between items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-500`}>
+            <p className="opacity-80">{t.footer.rights}</p>
+            <div className="flex gap-12 text-slate-400">
+              <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-blue-600 transition-colors">Legal Terms</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
