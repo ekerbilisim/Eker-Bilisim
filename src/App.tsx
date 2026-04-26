@@ -19,8 +19,6 @@ import {
   Cpu,
   ShieldCheck,
   Zap,
-  Sun,
-  Moon,
   Send,
   Lock
 } from 'lucide-react';
@@ -29,7 +27,6 @@ import Turnstile from 'react-turnstile';
 
 // --- Types & Translations ---
 type Language = 'tr' | 'en' | 'de';
-type Theme = 'light' | 'dark';
 
 const currentYear = new Date().getFullYear();
 
@@ -64,23 +61,80 @@ const translations = {
 };
 
 const getServices = (t: any) => [
-  { id: 'web', title: t.webTitle || 'Web Sitesi Kurulumu', icon: <Layout className="w-8 h-8" /> },
-  { id: 'app', title: t.appTitle || 'Uygulama Geliştirme', icon: <Smartphone className="w-8 h-8" /> },
-  { id: 'infra', title: t.infraTitle || 'Altyapı & Güvenlik', icon: <ShieldCheck className="w-8 h-8" /> },
-  { id: 'support', title: t.supportTitle || 'Teknik Destek', icon: <LifeBuoy className="w-8 h-8" /> },
-  { id: 'server', title: t.serverTitle || 'Kurulum Hizmetleri', icon: <Server className="w-8 h-8" /> },
-  { id: 'security', title: t.secureTitle || 'Siber Güvenlik', icon: <ShieldCheck className="w-8 h-8" /> },
+  { id: 'web', title: t.webTitle, desc: t.webShortDesc, fullDesc: t.webFullDesc, icon: <Layout className="w-8 h-8" /> },
+  { id: 'app', title: t.appTitle, desc: t.appShortDesc, fullDesc: t.appFullDesc, icon: <Smartphone className="w-8 h-8" /> },
+  { id: 'infra', title: t.infraTitle, desc: t.infraShortDesc, fullDesc: t.infraFullDesc, icon: <ShieldCheck className="w-8 h-8" /> },
+  { id: 'support', title: t.supportTitle, desc: t.supportShortDesc, fullDesc: t.supportFullDesc, icon: <LifeBuoy className="w-8 h-8" /> },
+  { id: 'server', title: t.serverTitle, desc: t.serverShortDesc, fullDesc: t.serverFullDesc, icon: <Server className="w-8 h-8" /> },
+  { id: 'security', title: t.secureTitle, desc: t.secureShortDesc, fullDesc: t.secureFullDesc, icon: <ShieldCheck className="w-8 h-8" /> },
 ];
 
 const serviceLocales = {
-  tr: { webTitle: 'Web Sitesi Kurulumu', appTitle: 'Uygulama Geliştirme', infraTitle: 'Altyapı & Güvenlik', supportTitle: 'Teknik Destek', serverTitle: 'Kurulum Hizmetleri', secureTitle: 'Siber Güvenlik' },
-  en: { webTitle: 'Web Setup', appTitle: 'App Development', infraTitle: 'Infra & Security', supportTitle: 'Technical Support', serverTitle: 'Installation Services', secureTitle: 'Cyber Security' },
-  de: { webTitle: 'Web-Installation', appTitle: 'App-Entwicklung', infraTitle: 'Infra & Sicherheit', supportTitle: 'Technischer Support', serverTitle: 'Installationsdienste', secureTitle: 'Cyber-Sicherheit' }
+  tr: { 
+    webTitle: 'Web Sitesi Kurulumu', 
+    webShortDesc: 'Modern ve hızlı web siteleri tasarlıyoruz.',
+    webFullDesc: 'Web sitesi sahibi olmak günümüzde işletmeler için bir zorunluluktur. Eker Bilişim olarak, kullanıcı deneyimi odaklı, hızlı ve SEO dostu web siteleri geliştiriyoruz. Web sitenizin temel taşı olan Alan Adı (Domain) konusunda, güvenilirliğiniz için sadece sektörün devleri ile çalışmanızı öneriyoruz. Önerdiğimiz Global firmalar: GoDaddy, Namecheap, Cloudflare, Google Domains. Önerdiğimiz Yerel firmalar: Natro, Turhost, IHS, Metunic.',
+    appTitle: 'Uygulama Geliştirme', 
+    appShortDesc: 'iOS, Android ve karmaşık kurumsal çözümler.',
+    appFullDesc: 'Şirketinizin ihtiyaçlarına özel mobil ve masaüstü uygulamalar geliştiriyoruz. Sadece iOS ve Android değil, en karmaşık kurumsal yazılım ihtiyaçlarınıza kadar geniş bir yelpazede, ölçeklenebilir ve performanslı çözümler inşa ediyoruz.',
+    infraTitle: 'Altyapı & Güvenlik', 
+    infraShortDesc: 'Evlerden karmaşık kurumsal yapılara altyapı çözümleri.',
+    infraFullDesc: 'Hem bireysel kullanıcılar hem de büyük ölçekli işletmeler için kapsamlı altyapı hizmetleri sunuyoruz. Ev içi ağ kurulumlarından, karmaşık kurumsal veri merkezlerine ve gelişmiş güvenlik duvarı yapılandırmalarına kadar her ölçekte yanınızdayız.',
+    supportTitle: 'Teknik Destek', 
+    supportShortDesc: 'Hızlı ve profesyonel teknik servis.',
+    supportFullDesc: 'Eker Bilişim olarak geniş iş ortağı ağımızla birlikte, donanım ve yazılım sorunlarınıza en hızlı ve profesyonel çözümleri sunuyoruz. Uzman ekibimiz ve çözüm ortaklarımızla birlikte, iş akışınızın aksamaması için profesyonel destek sağlıyoruz.',
+    serverTitle: 'Kurulum Hizmetleri', 
+    serverShortDesc: 'Fiziksel, bulut ve donanım kurulum hizmetleri.',
+    serverFullDesc: 'Fiziksel ve bulut sunucu kurulumlarının yanı sıra; kamera sistemleri, güvenlik sistemleri, modem ve ağ cihazları gibi donanımların uçtan uca kurulumunu gerçekleştiriyoruz. Müşterilerimize ait fiziksel sunucuların konfigürasyon ve yönetim süreçlerinde profesyonel çözümler sunuyoruz.',
+    secureTitle: 'Siber Güvenlik',
+    secureShortDesc: 'Hızlı, kolay ve güvenli siber güvenlik çözümleri.',
+    secureFullDesc: 'Bireysel ihtiyaçlardan karmaşık kurumsal yapılara kadar her türlü dijital varlığınızı koruyoruz. Sızma testleri, güvenlik analizleri ve modern koruma sistemlerimizle siber tehditlere karşı hızlı, kolay ve tam güvenli çözümler sunuyoruz.'
+  },
+  en: { 
+    webTitle: 'Web Setup', 
+    webShortDesc: 'We design modern and fast websites.',
+    webFullDesc: 'Having a website is a must for businesses today. We develop fast and SEO-friendly websites focusing on user experience. For your domain registration, we recommend working with industry giants for maximum reliability. Global recommendations: GoDaddy, Namecheap, Cloudflare, Google Domains. Depending on your region, we also recommend major local registrars like Natro or Turhost for local support.',
+    appTitle: 'App Development', 
+    appShortDesc: 'iOS, Android, and complex enterprise solutions.',
+    appFullDesc: 'We develop custom applications tailored to your business needs. From iOS and Android apps to high-complexity enterprise software, we build scalable and high-performance solutions for diverse requirements.',
+    infraTitle: 'Infra & Security', 
+    infraShortDesc: 'Infrastructure solutions from private homes to complex business needs.',
+    infraFullDesc: 'We provide comprehensive infrastructure services for both residential users and large-scale enterprises. From home network setups to complex corporate data centers and advanced firewall configurations, we support you at every scale.',
+    supportTitle: 'Technical Support', 
+    supportShortDesc: 'Fast and professional technical service.',
+    supportFullDesc: 'At Eker Bilişim, working alongside our extensive network of business partners, we provide the fastest and most professional solutions for your hardware and software needs. Together with our partners, we ensure your workflow remains uninterrupted.',
+    serverTitle: 'Installation Services', 
+    serverShortDesc: 'Physical, cloud, and hardware installation services.',
+    serverFullDesc: 'In addition to physical and cloud server installations, we provide end-to-end setup for cameras, security systems, and network devices like modems. We also offer professional configuration and management for physical servers provided by our clients.',
+    secureTitle: 'Cyber Security',
+    secureShortDesc: 'Fast, easy and secure cyber security solutions.',
+    secureFullDesc: 'We provide cyber security solutions tailored for all needs, including individual requirements. Our services ensure your digital assets are protected against threats with a focus on being fast, easy to implement, and ultra-secure.'
+  },
+  de: { 
+    webTitle: 'Web-Installation', 
+    webShortDesc: 'Wir entwerfen moderne und schnelle Websites.',
+    webFullDesc: 'Eine Website ist heute für Unternehmen unverzichtbar. Wir entwickeln schnelle und SEO-freundliche Websites mit Fokus auf Benutzererfahrung. Für Ihre Domain-Registrierung empfehlen wir die Zusammenarbeit mit Branchenriesen für maximale Zuverlässigkeit. Globale Empfehlungen: GoDaddy, Namecheap, Cloudflare, Google Domains. Wir empfehlen auch große lokale Registrare in Ihrer Region.',
+    appTitle: 'App-Entwicklung', 
+    appShortDesc: 'iOS, Android und komplexe Unternehmenslösungen.',
+    appFullDesc: 'Wir entwickeln maßgeschneiderte Anwendungen für Ihre geschäftlichen Anforderungen. Von iOS- und Android-Apps bis hin zu hochkomplexer Unternehmenssoftware bauen wir skalierbare und leistungsstarke Lösungen für vielfältige Anforderungen.',
+    infraTitle: 'Infra & Sicherheit', 
+    infraShortDesc: 'Infrastrukturlösungen vom Privathaus bis zum komplexen Unternehmen.',
+    infraFullDesc: 'Wir bieten umfassende Infrastrukturdienstleistungen sowohl für Privatnutzer als auch für Großunternehmen an. Von der Heimnetzwerkeinrichtung bis hin zu komplexen Unternehmensrechenzentren und fortschrittlichen Firewall-Konfigurationen unterstützen wir Sie in jeder Größenordnung.',
+    supportTitle: 'Technischer Support', 
+    supportShortDesc: 'Schneller und professioneller technischer Service.',
+    supportFullDesc: 'Eker Bilişim bietet in Zusammenarbeit mit unseren zahlreichen Geschäftspartnern schnelle und professionelle Lösungen für Ihre Hard- und Softwareprobleme. Gemeinsam mit unseren Partnern garantieren wir einen reibungslosen Workflow.',
+    serverTitle: 'Installationsdienste', 
+    serverShortDesc: 'Physische, Cloud- und Hardware-Installationsdienste.',
+    serverFullDesc: 'Neben physischen und Cloud-Server-Installationen bieten wir die End-to-End-Einrichtung von Kameras, Sicherheitssystemen und Netzwerkgeräten wie Modems an. Wir bieten auch professionelle Konfiguration und Verwaltung für physische Server unserer Kunden an.',
+    secureTitle: 'Cyber-Sicherheit',
+    secureShortDesc: 'Schnelle, einfache und sichere Cybersicherheitslösungen.',
+    secureFullDesc: 'Wir bieten Cybersicherheitslösungen für alle Bedürfnisse, einschließlich individueller Anforderungen. Wir schützen Ihre digitalen Assets schnell, einfach und sicher vor Bedrohungen.'
+  }
 };
 
 export default function App() {
   const [lang, setLang] = useState<Language>('tr');
-  const [theme, setTheme] = useState<Theme>('light');
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
@@ -96,6 +150,11 @@ export default function App() {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
 
+    // Force light mode
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
+    document.body.style.backgroundColor = '#ffffff'; // white
+
     // Initial message count from localStorage
     const savedCount = localStorage.getItem('eker_message_count');
     if (savedCount) {
@@ -104,18 +163,6 @@ export default function App() {
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.body.style.backgroundColor = '#0f172a'; // slate-900
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.style.backgroundColor = '#ffffff'; // white
-    }
-  }, [theme]);
-
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,10 +188,12 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'} font-sans selection:bg-blue-500/30`}>
+    <div className="min-h-screen transition-colors duration-300 bg-white text-slate-800 font-sans selection:bg-blue-600/30">
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? (theme === 'dark' ? 'bg-slate-900/80' : 'bg-white/90') + ' backdrop-blur-md py-4 shadow-lg border-b border-slate-200/10' : 'bg-transparent py-6'
+          isScrolled 
+            ? 'bg-white/95 border-slate-100' + ' backdrop-blur-md py-4 shadow-sm border-b' 
+            : 'bg-transparent py-6'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -152,7 +201,7 @@ export default function App() {
             <div className="bg-blue-600 overflow-hidden rounded-xl group-hover:scale-105 transition-transform w-[50px] h-[50px]">
               <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim Logo" className="w-full h-full object-cover" />
             </div>
-            <span className={`text-xl font-bold tracking-tight underline decoration-blue-600 decoration-2 underline-offset-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            <span className={`text-xl font-bold tracking-tight underline decoration-blue-600 decoration-2 underline-offset-4 text-slate-900`}>
               Eker <span className="text-blue-600">Bilişim</span>
             </span>
           </a>
@@ -162,17 +211,13 @@ export default function App() {
               <a 
                 key={key} 
                 href={`#${key === 'home' ? 'home' : key}`} 
-                className={`text-sm font-semibold uppercase tracking-widest transition-colors hover:text-blue-600 ${isScrolled ? (theme === 'dark' ? 'text-slate-300' : 'text-slate-600') : (theme === 'dark' ? 'text-slate-300' : 'text-slate-600')}`}
+                className="text-sm font-semibold uppercase tracking-widest transition-colors hover:text-blue-600 text-slate-600"
               >
                 {name}
               </a>
             ))}
             
             <div className="flex items-center gap-3 ml-4 border-l border-slate-300/30 pl-6">
-              <button onClick={toggleTheme} className="p-2 hover:bg-blue-500/10 rounded-full transition-colors text-blue-600">
-                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-              </button>
-              
               <div className="flex items-center gap-1">
                 {(['tr', 'en', 'de'] as Language[]).map((l) => (
                   <button 
@@ -185,7 +230,7 @@ export default function App() {
                 ))}
               </div>
 
-              <a href="#contact" className="bg-slate-900 dark:bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95">
+              <a href="#contact" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
                 {t.nav.offer}
               </a>
             </div>
@@ -202,14 +247,13 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className={`absolute top-full left-0 right-0 ${theme === 'dark' ? 'bg-slate-800' : 'bg-white'} border-t border-slate-100 shadow-xl overflow-hidden p-6 md:hidden flex flex-col gap-4`}
+              className="absolute top-full left-0 right-0 bg-white border-slate-100 border-t shadow-xl overflow-hidden p-6 md:hidden flex flex-col gap-4"
             >
               {Object.entries(t.nav).slice(0, 4).map(([key, name]) => (
                 <a key={key} href={`#${key}`} className="text-lg font-medium hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>{name}</a>
               ))}
               <div className="flex gap-4 items-center">
-                <button onClick={toggleTheme} className="p-3 bg-slate-100 dark:bg-slate-700 rounded-xl">{theme === 'light' ? <Moon size={20}/> : <Sun size={20}/>}</button>
-                <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
+                <div className="flex bg-slate-100 rounded-xl p-1">
                   {(['tr', 'en', 'de'] as Language[]).map((l) => (
                     <button key={l} onClick={() => setLang(l)} className={`px-4 py-2 text-xs font-bold rounded-lg uppercase ${lang === l ? 'bg-blue-600 text-white' : ''}`}>{l}</button>
                   ))}
@@ -221,10 +265,10 @@ export default function App() {
       </nav>
 
       {/* Hero */}
-      <section id="home" className={`relative pt-32 pb-20 overflow-hidden min-h-[95vh] flex items-center transition-colors ${theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
-        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-           <div className={`absolute top-0 -left-20 w-[40rem] h-[40rem] ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-300/20'} rounded-full blur-[120px] animate-pulse`}></div>
-           <div className={`absolute bottom-0 -right-20 w-[30rem] h-[30rem] ${theme === 'dark' ? 'bg-indigo-500/20' : 'bg-indigo-300/20'} rounded-full blur-[100px] animate-pulse delay-700`}></div>
+      <section id="home" className="relative pt-32 pb-20 overflow-hidden min-h-[95vh] flex items-center transition-colors bg-white">
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+           <div className="absolute top-0 -left-20 w-[45rem] h-[45rem] bg-blue-400/20 rounded-full blur-[130px] animate-pulse"></div>
+           <div className="absolute bottom-0 -right-20 w-[35rem] h-[35rem] bg-indigo-300/20 rounded-full blur-[110px] animate-pulse delay-700"></div>
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -252,16 +296,16 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-lg md:text-xl text-slate-500 max-w-xl mb-12 leading-relaxed"
+                className="text-lg md:text-xl max-w-xl mb-12 leading-relaxed text-slate-600"
               >
                 {t.hero.desc}
               </motion.p>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="flex flex-col sm:flex-row gap-4">
-                <a href="#contact" className="bg-slate-900 dark:bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:translate-y-[-2px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                <a href="#contact" className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:bg-blue-700 hover:translate-y-[-2px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
                   {t.hero.cta1} <ArrowRight />
                 </a>
-                <a href="#services" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 px-10 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center justify-center">
+                <a href="#services" className="bg-white border border-slate-100 text-slate-600 px-10 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center justify-center hover:bg-slate-50 hover:border-slate-200">
                   {t.hero.cta2}
                 </a>
               </motion.div>
@@ -274,9 +318,11 @@ export default function App() {
                   initial={{ opacity: 0, scale: 0.8 }} 
                   animate={{ opacity: 1, scale: 1 }} 
                   transition={{ delay: 0.8 + (idx * 0.1) }}
-                  className={`p-8 ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} border rounded-3xl shadow-sm hover:border-blue-500 transition-all group`}
+                  className="p-8 bg-white border border-slate-100 text-slate-900 rounded-3xl shadow-sm hover:border-blue-600/30 transition-all group"
                 >
-                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">{srv.icon}</div>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white">
+                    {srv.icon}
+                  </div>
                   <h3 className="font-black text-xs uppercase tracking-widest">{srv.title}</h3>
                 </motion.div>
               ))}
@@ -286,7 +332,7 @@ export default function App() {
       </section>
 
       {/* Services */}
-      <section id="services" className={`py-32 ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
+      <section id="services" className="py-32 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.services.badge}</h2>
@@ -296,13 +342,20 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {s.map((srv, i) => (
-              <motion.div key={i} whileHover={{ y: -10 }} className={`p-10 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} border-2 rounded-3xl transition-all shadow-sm hover:shadow-2xl hover:border-blue-500/50`}>
-                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 text-blue-600 rounded-2xl flex items-center justify-center mb-8 shadow-md">{srv.icon}</div>
+              <motion.div key={i} whileHover={{ y: -10 }} className="p-10 bg-white border-2 border-slate-50 rounded-3xl transition-all shadow-sm hover:shadow-2xl hover:border-blue-600/30">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-md bg-blue-50/50 text-blue-600">
+                  {srv.icon}
+                </div>
                 <h4 className="text-xl font-black mb-4 font-display">{srv.title}</h4>
-                <p className="text-slate-500 text-sm leading-relaxed mb-8">Uzman ekibimizle markanızın dijitalleşme sürecindeki en büyük yardımcısıyız. İhtiyaçlarınıza özel stratejiler ve kalıcı çözümler üretiyoruz.</p>
-                <a href="#contact" className="text-xs font-black text-blue-600 uppercase tracking-widest underline underline-offset-8 decoration-blue-200 hover:decoration-blue-600 transition-all inline-flex items-center gap-2">
+                <p className="text-sm leading-relaxed mb-8 text-slate-500">
+                  {srv.desc}
+                </p>
+                <button 
+                  onClick={() => setSelectedService(srv)}
+                  className="text-xs font-black text-blue-600 uppercase tracking-widest underline underline-offset-8 decoration-blue-200 hover:decoration-blue-600 transition-all inline-flex items-center gap-2 cursor-pointer"
+                >
                   {t.services.more} <ChevronRight size={14}/>
-                </a>
+                </button>
               </motion.div>
             ))}
           </div>
@@ -310,12 +363,12 @@ export default function App() {
       </section>
 
       {/* About */}
-      <section id="about" className={`py-32 transition-colors ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50/50'}`}>
+      <section id="about" className="py-32 transition-colors bg-blue-50/10">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row items-center gap-20">
             <div className="lg:w-1/2 relative">
-              <div className="absolute -inset-4 bg-blue-600/20 rounded-full blur-3xl animate-pulse"></div>
-              <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000" className="rounded-[3rem] shadow-2xl relative z-10 grayscale hover:grayscale-0 transition-all duration-700" alt="Team" />
+              <div className="absolute -inset-4 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
+              <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000" className="rounded-[3rem] shadow-2xl relative z-10 hover:shadow-blue-200/50 transition-all duration-700" alt="Team" />
               <div className="absolute -bottom-10 -right-10 bg-blue-600 text-white p-8 rounded-[2rem] shadow-2xl z-20 hidden md:block">
                 <span className="text-5xl font-black block">10+</span>
                 <span className="text-[10px] uppercase font-black tracking-widest opacity-80">{t.about.exp}</span>
@@ -324,17 +377,17 @@ export default function App() {
             <div className="lg:w-1/2">
               <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.about.badge}</h2>
               <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[1.1] font-display">{t.about.title}</h3>
-              <p className="text-lg text-slate-500 mb-6 leading-relaxed">{t.about.p1}</p>
-              <p className="text-slate-500 mb-10 leading-relaxed">{t.about.p2}</p>
+              <p className="text-lg mb-6 leading-relaxed text-slate-700">{t.about.p1}</p>
+              <p className="mb-10 leading-relaxed text-slate-600">{t.about.p2}</p>
               
               <div className="grid grid-cols-2 gap-8 mb-12">
                 <div className="flex gap-4">
                   <Zap className="text-blue-600 shrink-0" />
-                  <div><h5 className="font-black text-sm uppercase">{t.about.fastSupport}</h5><p className="text-xs text-slate-400">7/24 Teknik destek</p></div>
+                  <div><h5 className="font-black text-sm uppercase">{t.about.fastSupport}</h5><p className="text-xs text-slate-500">7/24 Teknik destek</p></div>
                 </div>
                 <div className="flex gap-4">
                   <ShieldCheck className="text-blue-600 shrink-0" />
-                  <div><h5 className="font-black text-sm uppercase">{t.about.secureInfra}</h5><p className="text-xs text-slate-400">Maksimum güvenlik</p></div>
+                  <div><h5 className="font-black text-sm uppercase">{t.about.secureInfra}</h5><p className="text-xs text-slate-500">Maksimum güvenlik</p></div>
                 </div>
               </div>
               <a href="#contact" className="bg-blue-600 text-white px-10 py-4 rounded-full font-black hover:bg-blue-700 transition-all shadow-lg inline-flex items-center gap-2">{t.about.more} <ArrowRight /></a>
@@ -357,41 +410,42 @@ export default function App() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className={`py-40 transition-colors ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
+      <section id="contact" className="py-40 transition-colors bg-white">
         <div className="container mx-auto px-6 max-w-4xl">
           <div className="text-center mb-20">
             <h2 className="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">{t.contact.badge}</h2>
             <h3 className="text-4xl md:text-6xl font-black mb-8 font-display">{t.contact.title}</h3>
-            <p className="text-slate-500 text-lg">{t.contact.desc}</p>
+            <p className="text-lg text-slate-600">{t.contact.desc}</p>
           </div>
           
           <div className="w-full">
-            <form onSubmit={handleSubmit} className={`${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-2 p-10 md:p-16 rounded-[4rem] space-y-10 shadow-2xl transition-colors`}>
+            <form onSubmit={handleSubmit} className="bg-white border-slate-50 border-2 p-10 md:p-16 rounded-[4rem] space-y-10 shadow-2xl shadow-slate-100 transition-colors">
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-4">
                   <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelName}</label>
-                  <input required type="text" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+                  <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
                 </div>
                 <div className="space-y-4">
                   <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelEmail}</label>
-                  <input required type="email" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+                  <input required type="email" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
                 </div>
               </div>
               <div className="space-y-4">
                 <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelSubject}</label>
-                <input required type="text" className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl`} />
+                <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl" />
               </div>
               <div className="space-y-4">
                 <label className="text-xs font-black uppercase text-slate-400 tracking-widest">{t.contact.labelMsg}</label>
-                <textarea required rows={4} className={`w-full bg-transparent border-b-2 ${theme === 'dark' ? 'border-slate-800' : 'border-slate-100'} focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl resize-none`} />
+                <textarea required rows={4} className="w-full bg-transparent border-b-2 border-slate-50 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl resize-none" />
               </div>
 
-              {/* Turnstile Captcha */}
-              <div className="flex justify-center py-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800">
+              {/* Turnstile Captcha - Inconspicuous container */}
+              <div className="flex justify-center py-2">
                 <Turnstile
                   sitekey={turnstileSiteKey}
                   onVerify={(token) => setTurnstileToken(token)}
-                  theme={theme}
+                  theme="light"
+                  appearance="interaction-only"
                 />
               </div>
 
@@ -408,7 +462,7 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className={`transition-colors ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} py-32 rounded-t-[5rem]`}>
+      <footer className="transition-colors bg-white border-t border-slate-50 text-slate-900 py-32 rounded-t-[5rem]">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-24 mb-24">
             <div className="space-y-8">
@@ -416,13 +470,13 @@ export default function App() {
                 <div className="bg-blue-600 overflow-hidden rounded-xl w-[60px] h-[60px]">
                   <img src="https://i.ibb.co/dwKTmdHD/Logo-arkaplanl-Photoroom.png" alt="Eker Bilişim" className="w-full h-full object-cover" />
                 </div>
-                <span className={`text-3xl font-black tracking-tighter underline decoration-blue-600 decoration-4 underline-offset-[12px] ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Eker <span className="text-blue-600">Bilişim</span></span>
+                <span className="text-3xl font-black tracking-tighter underline decoration-blue-600 decoration-4 underline-offset-[12px] text-slate-900">Eker <span className="text-blue-600">Bilişim</span></span>
               </a>
-              <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-sm">{t.footer.desc}</p>
+              <p className="text-lg font-medium leading-relaxed max-w-sm text-slate-500">{t.footer.desc}</p>
               <div className="flex gap-4">
-                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Facebook size={20}/></a>
-                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Twitter size={20}/></a>
-                <a href="#" className={`w-12 h-12 ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all ${theme === 'dark' ? 'text-white' : 'text-slate-600'} hover:text-white shadow-xl`}><Instagram size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Facebook size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Twitter size={20}/></a>
+                <a href="#" className="w-12 h-12 bg-white border border-slate-100 border rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all text-slate-400 hover:text-white shadow-sm hover:shadow-lg"><Instagram size={20}/></a>
               </div>
             </div>
             <div>
@@ -436,12 +490,12 @@ export default function App() {
             <div>
               <h5 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-600 mb-10">{t.footer.subscribe}</h5>
               <div className="relative group">
-                <input type="email" placeholder={t.footer.placeholder} className={`w-full ${theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-2 rounded-[1.5rem] px-8 py-5 text-sm focus:border-blue-600 outline-none transition-all placeholder:text-slate-600 font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`} />
+                <input type="email" placeholder={t.footer.placeholder} className="w-full bg-white border-slate-100 border-2 rounded-[1.5rem] px-8 py-5 text-sm focus:border-blue-600 outline-none transition-all placeholder:text-slate-400 font-bold text-slate-900" />
                 <button className="absolute right-3 top-3 bg-blue-600 p-2.5 rounded-[1rem] shadow-xl hover:bg-blue-700 transition-all text-white"><ArrowRight size={22}/></button>
               </div>
             </div>
           </div>
-          <div className={`pt-16 border-t ${theme === 'dark' ? 'border-slate-800' : 'border-slate-200'} flex flex-col md:flex-row justify-between items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-500`}>
+          <div className="pt-16 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
             <p className="opacity-80">{t.footer.rights}</p>
             <div className="flex gap-12 text-slate-400">
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
@@ -450,6 +504,66 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Service Detail Modal */}
+      <AnimatePresence>
+        {selectedService && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+            onClick={() => setSelectedService(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setSelectedService(null)}
+                className="absolute top-8 right-8 p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-blue-600 transition-colors z-10"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="p-12 md:p-16">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-10 shadow-xl bg-blue-600 text-white">
+                  {React.cloneElement(selectedService.icon as React.ReactElement, { className: "w-10 h-10" })}
+                </div>
+                
+                <h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tight font-display text-slate-900">
+                  {selectedService.title}
+                </h2>
+                
+                <div className="space-y-6 text-lg leading-relaxed text-slate-600">
+                  {selectedService.fullDesc.split('\n').map((para: string, idx: number) => (
+                    <p key={idx}>{para}</p>
+                  ))}
+                </div>
+
+                <div className="mt-12 pt-12 border-t border-slate-100 flex flex-col sm:flex-row gap-6">
+                  <a 
+                    href="#contact" 
+                    onClick={() => setSelectedService(null)}
+                    className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black text-center hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+                  >
+                    {t.nav.offer}
+                  </a>
+                  <button 
+                    onClick={() => setSelectedService(null)}
+                    className="bg-slate-50 text-slate-600 px-10 py-5 rounded-2xl font-black hover:bg-slate-100 transition-all active:scale-95 text-center"
+                  >
+                    {lang === 'tr' ? 'Kapat' : lang === 'en' ? 'Close' : 'Schließen'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
