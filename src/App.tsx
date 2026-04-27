@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Turnstile from 'react-turnstile';
+import { MailInput } from './components/MailInput';
 
 // --- Types & Translations ---
 type Language = 'tr' | 'en' | 'de';
@@ -136,7 +137,23 @@ const serviceLocales = {
 };
 
 export default function App() {
-  const [lang, setLang] = useState<Language>('tr');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('eker_lang') as Language;
+      if (saved && ['tr', 'en', 'de'].includes(saved)) return saved;
+      
+      const browserLang = navigator.language.toLowerCase();
+      if (browserLang.startsWith('tr')) return 'tr';
+      if (browserLang.startsWith('de')) return 'de';
+      return 'en';
+    }
+    return 'tr';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('eker_lang', lang);
+  }, [lang]);
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eker_theme');
@@ -153,7 +170,7 @@ export default function App() {
   const [isSent, setIsSent] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADD5YIGWCSyNrXcD';
 
   const t = translations[lang];
   const s = getServices(serviceLocales[lang]);
@@ -185,11 +202,11 @@ export default function App() {
     localStorage.setItem('eker_theme', theme);
   }, [theme]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!turnstileToken) {
-      alert('Lütfen robot olmadığınızı doğrulayın.');
+      alert(lang === 'tr' ? 'Lütfen robot olmadığınızı doğrulayın.' : (lang === 'de' ? 'Bitte bestätigen Sie, dass Sie kein Roboter sind.' : 'Please verify that you are not a robot.'));
       return;
     }
 
@@ -197,15 +214,45 @@ export default function App() {
       alert(t.contact.limitReached);
       return;
     }
-    
-    const nextCount = messageCount + 1;
-    setMessageCount(nextCount);
-    localStorage.setItem('eker_message_count', nextCount.toString());
-    setIsSent(true);
-    alert(t.contact.success);
-    
-    // In a real app, you'd send data to an API here
-    (e.target as HTMLFormElement).reset();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    // Add some metadata for FormSubmit
+    const payload = {
+      ...data,
+      _subject: `Yeni İletişim Formu Mesajı: ${data.subject}`,
+      _template: 'table',
+      _captcha: 'false', // We use Turnstile instead
+      'Turnstile-Token': turnstileToken
+    };
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/ugure47@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const nextCount = messageCount + 1;
+        setMessageCount(nextCount);
+        localStorage.setItem('eker_message_count', nextCount.toString());
+        setIsSent(true);
+        alert(t.contact.success);
+        form.reset();
+        setTurnstileToken(null);
+      } else {
+        throw new Error('Form submission failed');
+      }
+    } catch (error) {
+      console.error(error);
+      alert(lang === 'tr' ? 'Bir hata oluştu, lütfen daha sonra tekrar deneyin.' : (lang === 'de' ? 'Ein Fehler ist aufgetreten, bitte versuchen Sie es später erneut.' : 'An error occurred, please try again later.'));
+    }
   };
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -512,20 +559,17 @@ export default function App() {
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-4">
                   <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelName}</label>
-                  <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
+                  <input name="name" required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
                 </div>
-                <div className="space-y-4">
-                  <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelEmail}</label>
-                  <input required type="email" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
-                </div>
+                <MailInput name="email" label={t.contact.labelEmail} required />
               </div>
               <div className="space-y-4">
                 <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelSubject}</label>
-                <input required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
+                <input name="subject" required type="text" className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white" />
               </div>
               <div className="space-y-4">
                 <label className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{t.contact.labelMsg}</label>
-                <textarea required rows={4} className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white resize-none" />
+                <textarea name="message" required rows={4} className="w-full bg-transparent border-b-2 border-slate-50 dark:border-slate-800 focus:border-blue-600 py-4 transition-all outline-none font-bold text-xl text-slate-900 dark:text-white resize-none" />
               </div>
 
               {/* Turnstile Captcha - Inconspicuous container */}
